@@ -1,5 +1,6 @@
 # Dice Python Utility
 
+import os
 import random
 import re
 
@@ -218,6 +219,10 @@ def main():
     try:
         inputText = ""
         while "quit" not in inputText and "exit" not in inputText:
+            if "clear" in inputText:
+                os.system('cls')
+            if "*" in inputText or "/" in inputText:
+                print(eval(inputText))
             print(">> ", end=" ")
             inputText = input()
             if "quit" not in inputText and "exit" not in inputText and len(inputText) > 0:
