@@ -23,18 +23,35 @@ def getDieDistribution(numsides):
     return die
 
 def getDiceDistribution(numdice, numsides):
-    pdf = getDieDistribution(numsides)
+    single_die = getDieDistribution(numsides)
+    ret_die = single_die
     for die in range(numdice-1):
-        pdf = np.convolve(pdf,pdf)
-    return pdf
+        ret_die = convolveDice(ret_die,single_die)
+    return ret_die
     
 def getMaxDistribution(numdice, numsides):
-    pdf = {}
-    return pdf
+    probs = np.ones(numsides)
+    rolls = rolls = np.linspace(1,numsides,numsides)
+    px = 0
+    pxprev = 0
+    for x in range(1,numsides+1):
+        px = x**numdice - pxprev
+        probs[x-1] = px/(numsides**numdice)
+        pxprev += px    
+    die = np.vstack((probs,rolls))
+    return die
 
 def getMinDistribution(numdice, numsides):
-    pdf = {}
-    return pdf
+    probs = np.ones(numsides)
+    rolls = rolls = np.linspace(1,numsides,numsides)
+    px = 0
+    pxprev = 0
+    for x in range(numsides,-1,-1):
+        px = x**numdice - pxprev
+        probs[numsides-x-1] = -px/(numsides**numdice)
+        pxprev += px   
+    die = np.vstack((probs,rolls))
+    return die
 
 
 class DiceDistribution(object):  
