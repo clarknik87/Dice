@@ -4,6 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
+np.set_printoptions(precision=3)
+np.set_printoptions(suppress=True)
+
 # Dice are stored as a 2d numpy array.
 # The first row [0] stores the rolls
 # The second row stors the probability of that rolls
@@ -102,7 +105,7 @@ class DiceDistribution(object):
             ret_dice.pdf[1] += 1
             ret_dice.expr += "+1"
         return ret_dice
-        
+
     def __sub__(self,other):
         ret_dice = copy.deepcopy(self)
         if isinstance(other, DiceDistribution):
@@ -115,6 +118,20 @@ class DiceDistribution(object):
             ret_dice.expr += "-1"
         return ret_dice
     
+    def __mul__(self,other):
+        if isinstance(other, int):
+            ret_dice = copy.deepcopy(self)
+            ret_dice.expr = "(" + ret_dice.expr + ")" + "*" + str(other)
+            pdf_length = int(self.pdf[1][-1])*other-int(self.pdf[1][0])*other+1
+            probs = np.zeros(pdf_length)
+            rolls = np.linspace(self.pdf[1][0]*other, self.pdf[1][-1]*other, pdf_length)
+            for term in range(len(self.pdf[0])):
+                probs[term*other] = self.pdf[0][term]
+            ret_dice.pdf = np.vstack((probs,rolls))
+            return ret_dice
+        else:
+            raise NotImplemented
+
     def expected_value(self):
         ex = 0.0
         for term in range(len(self.pdf[0])):
