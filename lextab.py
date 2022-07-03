@@ -3,22 +3,12 @@
 # ------------------------------------------------------------
 import ply.lex as lex
 import math
+import DiceDistribution as dice
 
 # List of token names.   This is always required
-# tokens = (
-    # 'DICE',
-    # 'NAME',
-    # 'NUMBER_DOUBLE',
-    # 'NUMBER_INT',
-    # 'PLUS',
-    # 'MINUS',
-    # 'TIMES',
-    # 'DIVIDE',
-    # 'LPAREN',
-    # 'RPAREN',
-# )
 
 tokens = (
+    'DICE',
     'NAME',
     'NUMBER_DOUBLE',
     'NUMBER_INT',
@@ -44,10 +34,10 @@ t_COLON   = r','
 t_EQUALS  = r'='
 
 # A regular expression rule with some action code
-#def t_DICE(t):
-#    r'\d+d\d+'
-#    t.value = dice.Dice(t.value)
-#    return t
+def t_DICE(t):
+   r'\d+d\d+'
+   t.value = dice.DiceDistribution(t.value)
+   return t
     
 def t_NUMBER_DOUBLE(t):
     r'\d+\.\d+'

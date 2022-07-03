@@ -2,6 +2,7 @@ import ply.lex as lex
 import ply.yacc as yacc
 import math
 import lextab
+import os
 
 # Get the token map from the lexer.
 from lextab import tokens
@@ -105,19 +106,25 @@ def p_expression_function(t):
             print('%s() function need two arguments' % t[1])
         return
     elif t[1] == 'int':
-        if len(t[3]) == 2:
+        if len(t[3]) == 1:
             t[0]=int(t[3][0])
         else:
-            print('%s() function need two arguments' % t[1])
+            print('%s() function need one arguments' % t[1])
         return
     elif t[1] == 'float':
-        if len(t[3]) == 2:
+        if len(t[3]) == 1:
             t[0]=float(t[3][0])
         else:
-            print('%s() function need two arguments' % t[1])
+            print('%s() function need one arguments' % t[1])
         return
     print('Undefined function \'%s\'' % t[1])
     t[0] = None
+
+def p_expression_dice(t):
+    '''
+    expression : DICE
+    '''
+    t[0] = t[1]
 
 def p_expression_number(t):
     '''
@@ -144,9 +151,11 @@ def main():
     parser = yacc.yacc()
     while True:
         expr = input('>> ')
-        if 'quit' in expr:
+        if "clear" in expr:
+                os.system('cls')
+        elif 'quit' in expr:
             return
-        if expr != '':
+        elif expr != '':
             result = parser.parse(expr)
 
 if __name__ == "__main__":
