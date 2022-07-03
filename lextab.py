@@ -2,7 +2,6 @@
 # lextab.py
 # ------------------------------------------------------------
 import ply.lex as lex
-import dice
 import math
 
 # List of token names.   This is always required
