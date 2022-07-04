@@ -34,7 +34,9 @@ def p_statement_expression(t):
     '''
     statement : expression
     '''
-    if t[1] != None:
+    if isinstance(t[1], dice.DiceDistribution):
+        print(t[1].roll())
+    elif t[1] != None:
         print(t[1])
 
 def p_expression_binop(t):
@@ -99,6 +101,7 @@ def plot_dice(t):
     plt.title(title)
     plt.grid()
     plt.xticks(np.arange(minimum,maximum+1,step=math.ceil((maximum-minimum)/20.0)))
+    plt.legend()
     plt.show()
     t[0]=None
 

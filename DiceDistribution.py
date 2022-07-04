@@ -2,7 +2,7 @@ import re
 import copy
 import math
 import numpy as np
-import matplotlib
+import random
 
 np.set_printoptions(precision=3)
 np.set_printoptions(suppress=True)
@@ -86,6 +86,16 @@ class DiceDistribution(object):
         else:
             self.pdf = pdf
     
+    def roll(self):
+        result = int(random.choices(self.pdf[1],self.pdf[0], k=1)[0])
+        score = 0.0
+        for roll in range(len(self.pdf[1])):
+            if self.pdf[1][roll] > result:
+                break
+            else:
+                score += self.pdf[0][roll]
+        return "{} [{:.2f}%]".format(result,score*100)
+
     def __repr__(self):
         return self.expr
         
@@ -169,7 +179,7 @@ class DiceDistribution(object):
         print("\tStdDev:  {:.2f} 66%[{:.2f},{:.2f}]".format(stddev,expected-stddev,expected+stddev))
     
     def generate_plot(self, ax, color='b'):
-        ax.plot(self.pdf[1],self.pdf[0], color+'p')
+        ax.plot(self.pdf[1],self.pdf[0], color+'p', label=self.expr)
         ax.set_xlabel('roll outcome')
         ax.set_ylabel('probablity')
         #ax.grid(visible=True, axis='both')
