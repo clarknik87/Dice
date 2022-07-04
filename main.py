@@ -5,6 +5,8 @@ import numpy as np
 import math
 import lextab
 import os
+import sys
+import argparse
 
 import DiceDistribution as dice
 
@@ -37,6 +39,8 @@ def p_statement_expression(t):
     '''
     if isinstance(t[1], dice.DiceDistribution):
         print(t[1].roll())
+    elif isinstance(t[1], float):
+        print('{:.4f}'.format(t[1]))
     elif t[1] != None:
         print(t[1])
 
@@ -81,6 +85,9 @@ def p_expressions(t):
 
 def plot_dice(t):
     fig, ax = plt.subplots()
+    if not isinstance(t[3][0], dice.DiceDistribution):
+        print('%s() function needs a dice formula' % t[1])
+        return
     minimum = t[3][0].minimum()
     maximum = t[3][0].maximum()
     title = ''
@@ -99,6 +106,7 @@ def plot_dice(t):
                 maximum = expr.maximum()
         else:
             print('%s() function needs a dice formula' % t[1])
+            return
     plt.title(title)
     plt.grid()
     plt.xticks(np.arange(minimum,maximum+1,step=math.ceil((maximum-minimum)/20.0)))
@@ -213,6 +221,9 @@ def p_error(t):
     print('Syntax error at \'%s\'' % t.value)
 
 def main():
+    my_parser = argparse.ArgumentParser(description='Basic Calculator with DnD dice formula parsing')
+    args = my_parser.parse_args()
+
     lexer = lex.lex(module=lextab)
     parser = yacc.yacc()
     while True:
