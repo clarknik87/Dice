@@ -17,7 +17,7 @@ tokens = (
     'TIMES',
     'DIVIDE',
     'EQUALS',
-    'COLON',
+    'COMMA',
     'LPAREN',
     'RPAREN',
 )
@@ -30,7 +30,7 @@ t_TIMES   = r'\*'
 t_DIVIDE  = r'/'
 t_LPAREN  = r'\('
 t_RPAREN  = r'\)'
-t_COLON   = r','
+t_COMMA   = r','
 t_EQUALS  = r'='
 
 # A regular expression rule with some action code

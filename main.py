@@ -65,7 +65,7 @@ def p_expression_group(t):
 
 def p_expressions(t):
     '''
-    expressions : expressions COLON expression
+    expressions : expressions COMMA expression
                | expression
                |
     '''
