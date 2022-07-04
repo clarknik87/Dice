@@ -88,13 +88,31 @@ class DiceDistribution(object):
     
     def roll(self):
         result = int(random.choices(self.pdf[1],self.pdf[0], k=1)[0])
+        return "{} [{:.2f}%]".format(result,(self<result)*100)
+
+    def __le__(self,other):
         score = 0.0
         for roll in range(len(self.pdf[1])):
-            if self.pdf[1][roll] > result:
+            if self.pdf[1][roll] >= other:
                 break
             else:
                 score += self.pdf[0][roll]
-        return "{} [{:.2f}%]".format(result,score*100)
+        return score
+
+    def __lt__(self,other):
+        score = 0.0
+        for roll in range(len(self.pdf[1])):
+            if self.pdf[1][roll] > other:
+                break
+            else:
+                score += self.pdf[0][roll]
+        return score
+
+    def __ge__(self,other):
+        return 1-(self <= other)
+
+    def __gt__(self,other):
+        return 1-(self < other)
 
     def __repr__(self):
         return self.expr

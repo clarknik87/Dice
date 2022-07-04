@@ -12,9 +12,10 @@ import DiceDistribution as dice
 from lextab import tokens
 
 precedence = (
+    ('left','GREATER_THAN','GREATER_EQUAL','LESS_THAN','LESS_EQUAL'),
     ('left','PLUS','MINUS'),
     ('left','TIMES','DIVIDE'),
-    ('right','UMINUS'),
+    ('right','UMINUS')
 )
 
 variables = {
@@ -174,6 +175,22 @@ def p_expression_dice(t):
     expression : DICE
     '''
     t[0] = t[1]
+
+def p_comparison_dice(t):
+    '''
+    expression : expression GREATER_THAN expression
+               | expression GREATER_EQUAL expression
+               | expression LESS_THAN expression
+               | expression LESS_EQUAL expression
+    '''
+    if t[2] == '>':
+        t[0] = t[1] > t[3]
+    elif t[2] == '>=':
+        t[0] = t[1] >= t[3]
+    elif t[2] == '<':
+        t[0] = t[1] < t[3]
+    elif t[2] == '<=':
+        t[0] = t[1] <= t[3]
 
 def p_expression_number(t):
     '''

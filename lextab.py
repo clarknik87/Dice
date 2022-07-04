@@ -20,18 +20,26 @@ tokens = (
     'COMMA',
     'LPAREN',
     'RPAREN',
+    'GREATER_THAN',
+    'GREATER_EQUAL',
+    'LESS_THAN',
+    'LESS_EQUAL'
 )
 
 # Regular expression rules for simple tokens
-t_NAME    = r'[a-zA-Z_][a-zA-Z0-9_]*'
-t_PLUS    = r'\+'
-t_MINUS   = r'-'
-t_TIMES   = r'\*'
-t_DIVIDE  = r'/'
-t_LPAREN  = r'\('
-t_RPAREN  = r'\)'
-t_COMMA   = r','
-t_EQUALS  = r'='
+t_NAME          = r'[a-zA-Z_][a-zA-Z0-9_]*'
+t_PLUS          = r'\+'
+t_MINUS         = r'-'
+t_TIMES         = r'\*'
+t_DIVIDE        = r'/'
+t_LPAREN        = r'\('
+t_RPAREN        = r'\)'
+t_COMMA         = r','
+t_EQUALS        = r'='
+t_GREATER_THAN  = r'>'
+t_GREATER_EQUAL = r'>='
+t_LESS_THAN     = r'<'
+t_LESS_EQUAL    = r'<='
 
 # A regular expression rule with some action code
 def t_DICE(t):
