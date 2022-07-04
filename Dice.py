@@ -1,236 +1,239 @@
-# Dice Python Utility
-
+import ply.lex as lex
+import ply.yacc as yacc
+import matplotlib.pyplot as plt
+import numpy as np
+import math
+import lextab
 import os
-import random
-import re
+import sys
+import argparse
 
-#all stat functions return min,max,E,V
-def statMax(numdice,numsides):
-    min = 1
-    max = numsides
-    ex = 0
-    px = 0
-    pxprev = 0
-    for x in range(numsides+1):
-        px = x**numdice - pxprev
-        ex += (px/(numsides**numdice))*x
-        pxprev += px
-    var = 0
-    px = 0
-    pxprev = 0
-    for x in range(numsides+1):
-        px = x**numdice - pxprev
-        var += (px/(numsides**numdice))*((x - ex)**2)
-        pxprev += px
-    return min,max,ex,var
+import DiceDistribution as dice
 
-def statMin(numdice,numsides):
-    min = 1
-    max = numsides
-    ex = 0
-    var = 0
-    px = 0
-    pxprev = 0
-    for x in range(numsides,0,-1):
-        px = x**numdice - pxprev
-        ex += (px/(numsides**numdice))*x
-        pxprev += px
-    var = 0
-    px = 0
-    pxprev = 0
-    for x in range(numsides,0,-1):
-        px = (numsides - x +1)**numdice - pxprev
-        var += (px/(numsides**numdice))*((x - ex)**2)
-        pxprev += px
-    return min,max,ex,var
+# Get the token map from the lexer.
+from lextab import tokens
 
-def statDice(numdice,numsides):
-    min = numdice
-    max = numdice*numsides
-    ex = (numdice*(numsides+1))/2
-    var = 0
-    for i in range(1,numsides+1):
-        var += (i-ex/numdice)**2
-    var *= numdice/numsides
-    return min,max,ex,var
+precedence = (
+    ('left','GREATER_THAN','GREATER_EQUAL','LESS_THAN','LESS_EQUAL'),
+    ('left','PLUS','MINUS'),
+    ('left','TIMES','DIVIDE'),
+    ('right','UMINUS')
+)
 
+variables = {
+    'pi': math.pi,
+    'e': math.e,
+}
 
-#sum all rolls
-def evalDice(numdice,numsides):
-    sum = 0
-    allrolls = []
-    for rolls in range(numdice):
-        roll = random.randrange(1,numsides+1)
-        sum += roll
-        allrolls.append(roll)
-    return sum, allrolls
+start='statement'
 
-#choose the highest roll    
-def evalMax(numdice,numsides):
-    max = 1
-    allrolls = []
-    for rolls in range(numdice):
-        roll = random.randrange(1,numsides+1)
-        allrolls.append(roll)
-        if roll > max:
-            max = roll
-    return max,allrolls
+def p_statement_assign(t):
+    '''
+    statement : NAME EQUALS expression
+    '''
+    variables[t[1]] = t[3]
 
-#choose the lowest roll
-def evalMin(numdice,numsides):
-    min = numsides+1
-    allrolls = []
-    for rolls in range(numdice):
-        roll = random.randrange(1,numsides+1)
-        allrolls.append(roll)
-        if roll < min:
-            min = roll
-    return min,allrolls
+def p_statement_expression(t):
+    '''
+    statement : expression
+    '''
+    if isinstance(t[1], dice.DiceDistribution):
+        print(t[1].roll())
+    elif isinstance(t[1], float):
+        print('{:.4f}'.format(t[1]))
+    elif t[1] != None:
+        print(t[1])
 
-def calcStats( expr ):
-    firstTerm = True
-    operators = []
-    minimum = 0
-    maximum = 0
-    expected = 0
-    variance = 0
-    
-    #remove "stats(" ")"
-    expr = re.split("\((.+)\)",expr)
-    innerexpr = expr[1]
-    for token in re.split('([+-])', innerexpr):
-        tokenmin = 0
-        tokenmax = 0
-        tokenex = 0
-        tokenvar = 0
-        if token == "+" or token == "-":
-            operators.append(token)
-            continue
-        elif token.startswith("max("):
-            temp = token
-            temp = temp.replace("max(", "")
-            temp = temp.replace(")","")
-            tokenmin,tokenmax,tokenex,tokenvar = statMax(int(temp.split("d")[0]), int(temp.split("d")[1]))
-        elif token.startswith("min("):
-            temp = token
-            temp = temp.replace("min(", "")
-            temp = temp.replace(")","")
-            tokenmin,tokenmax,tokenex,tokenvar = statMin(int(temp.split("d")[0]), int(temp.split("d")[1]))
-        elif token.startswith("adv"):
-            tokenmin,tokenmax,tokenex,tokenvar = statMax(2, 20)
-        elif token.startswith("dis"):
-            tokenmin,tokenmax,tokenex,tokenvar = statMin(2, 20)
-        elif "d" in token:
-            tokenmin,tokenmax,tokenex,tokenvar = statDice(int(token.split("d")[0]), int(token.split("d")[1]))
-        else: #a constant
-            tokenmin = int(token)
-            tokenmax = int(token)
-            tokenex = int(token)
-            tokenvar = 0
-            
-   
-        if len(operators) == 1 or not firstTerm:
-            if operators[0] == '-':
-                minimum -= tokenmin
-                maximum -= tokenmax
-                expected -= tokenex
-                variance -= tokenvar
-            else:
-                minimum += tokenmin
-                maximum += tokenmax
-                expected += tokenex
-                variance += tokenvar
-            operators.clear()
+def p_expression_binop(t):
+    '''
+    expression : expression PLUS expression
+               | expression MINUS expression
+               | expression DIVIDE expression
+               | expression TIMES expression
+    '''
+    if t[2] == '+':
+        t[0] = t[1] + t[3]
+    elif t[2] == '-':
+        t[0] = t[1] - t[3]
+    elif t[2] == '*':
+        t[0] = t[1] * t[3]
+    elif t[2] == '/':
+        t[0] = t[1] / t[3]
+
+def p_expression_uminus(t):
+    '''
+    expression : MINUS expression %prec UMINUS
+    '''
+    t[0] = -t[2]
+
+def p_expression_group(t):
+    '''
+    expression : LPAREN expression RPAREN
+    '''
+    t[0] = t[2]
+
+def p_expressions(t):
+    '''
+    expressions : expressions COMMA expression
+               | expression
+               |
+    '''
+    if len(t) == 0:
+        t[0]=None
+        return
+    t[0] = [t[1]] if len(t) == 2 else t[1] + [t[3]]
+
+def plot_dice(t):
+    fig, ax = plt.subplots()
+    if not isinstance(t[3][0], dice.DiceDistribution):
+        print('%s() function needs a dice formula' % t[1])
+        return
+    minimum = t[3][0].minimum()
+    maximum = t[3][0].maximum()
+    title = ''
+    colors = ['b','g','r','c','m','y']
+    idx = 0
+    for expr in t[3]:
+        if isinstance(expr, dice.DiceDistribution):
+            print(expr)
+            title += str(expr)+','
+            expr.print_stats()
+            expr.generate_plot(ax, colors[idx])
+            idx += 1
+            if expr.minimum() < minimum:
+                minimum = expr.minimum()
+            if expr.maximum() > maximum:
+                maximum = expr.maximum()
         else:
-            minimum += tokenmin
-            maximum += tokenmax
-            expected += tokenex
-            variance += tokenvar
-    
-    stddev = variance**0.5
-    print("\tMinimum: {}".format(minimum))
-    print("\tMaximum: {}".format(maximum))
-    print("\tAverage: {:.2f}".format(expected))
-    print("\tStdDev:  {:.2f} 66%[{:.2f},{:.2f}]".format(stddev,expected-stddev,expected+stddev))
-    return 
+            print('%s() function needs a dice formula' % t[1])
+            return
+    plt.title(title)
+    plt.grid()
+    plt.xticks(np.arange(minimum,maximum+1,step=math.ceil((maximum-minimum)/20.0)))
+    plt.legend()
+    plt.show()
+    t[0]=None
 
-def rollDice( expr ):
-    operators = []
-    finalresult = 0
-    response = ""
-    firstTerm = True
-    for token in re.split('([+-])', expr):
-        result = 0
-        text = ""
-        if token == "+" or token == "-":
-            operators.append(token)
-            continue
-        elif token.startswith("max("):
-            temp = token
-            temp = temp.replace("max(", "")
-            temp = temp.replace(")","")
-            result, text = evalMax(int(temp.split("d")[0]), int(temp.split("d")[1]))
-            text = "max" + str(text)
-        elif token.startswith("min("):
-            temp = token
-            temp = temp.replace("min(", "")
-            temp = temp.replace(")","")
-            result, text = evalMin(int(temp.split("d")[0]), int(temp.split("d")[1]))
-            text = "min" + str(text)
-        elif token.startswith("adv"):
-            result, text = evalMax(2, 20)
-            text = "adv" + str(text)
-        elif token.startswith("dis"):
-            result, text = evalMin(2, 20)
-            text = "dis" + str(text)
-        elif "d" in token:
-            result, text = evalDice(int(token.split("d")[0]), int(token.split("d")[1]))
-        else: #a constant
-            result = int(token)
-   
-        if len(operators) == 1 or not firstTerm:
-            if operators[0] == '-':
-                finalresult -= result
-                response += "- {}{} ".format(str(text), result)
+def p_expression_function(t):
+    '''
+    expression : NAME LPAREN expressions RPAREN
+    '''
+
+    if t[1] == 'stats':
+        if len(t[3]) == 1:
+            if isinstance(t[3][0], dice.DiceDistribution):
+                t[3][0].print_stats()
+                t[0]=None
             else:
-                finalresult += result
-                response += "+ {}{} ".format(str(text), result)
-            operators.clear()
+                print('%s() function needs a dice formula' % t[1])
         else:
-            finalresult += result
-            response += "{}{} ".format(str(text), result)
-    
-    print("{} = {}".format(response, finalresult))
-    return
-    
-        
-     
-def parseInput( str ):
+           print('%s() function need one arguments' % t[1])
+        return
+    elif t[1] == 'plot':
+        plot_dice(t)
+        return
+
+    if t[1] == 'sqrt':
+        if len(t[3]) == 1:
+            t[0]=math.sqrt(float(t[3][0]))
+        else:
+            print('%s() function need one arguments' % t[1])
+        return
+    elif t[1] == 'ceil':
+        if len(t[3]) == 1:
+            t[0]=math.ceil(float(t[3][0]))
+        else:
+            print('%s() function need one arguments' % t[1])
+        return
+    elif t[1] == 'round':
+        if len(t[3]) == 1:
+            t[0]=round(float(t[3][0]))
+        else:
+            print('%s() function need one arguments' % t[1])
+        return
+    elif t[1] == 'floor':
+        if len(t[3]) == 1:
+            t[0]=math.floor(float(t[3][0]))
+        else:
+            print('%s() function need one arguments' % t[1])
+        return
+    elif t[1] == 'pow':
+        if len(t[3]) == 2:
+            t[0]=math.pow(int(t[3][0]), int(t[3][1]))
+        else:
+            print('%s() function need two arguments' % t[1])
+        return
+    elif t[1] == 'int':
+        if len(t[3]) == 1:
+            t[0]=int(t[3][0])
+        else:
+            print('%s() function need one arguments' % t[1])
+        return
+    elif t[1] == 'float':
+        if len(t[3]) == 1:
+            t[0]=float(t[3][0])
+        else:
+            print('%s() function need one arguments' % t[1])
+        return
+    print('Undefined function \'%s\'' % t[1])
+    t[0] = None
+
+def p_expression_dice(t):
+    '''
+    expression : DICE
+    '''
+    t[0] = t[1]
+
+def p_comparison_dice(t):
+    '''
+    expression : expression GREATER_THAN expression
+               | expression GREATER_EQUAL expression
+               | expression LESS_THAN expression
+               | expression LESS_EQUAL expression
+    '''
+    if t[2] == '>':
+        t[0] = t[1] > t[3]
+    elif t[2] == '>=':
+        t[0] = t[1] >= t[3]
+    elif t[2] == '<':
+        t[0] = t[1] < t[3]
+    elif t[2] == '<=':
+        t[0] = t[1] <= t[3]
+
+def p_expression_number(t):
+    '''
+    expression : NUMBER_INT
+               | NUMBER_DOUBLE
+    '''
+    t[0] = t[1]
+
+def p_expression_name(t):
+    '''
+    expression : NAME
+    '''
     try:
-        if str.startswith("stats("):        
-            calcStats(str)
-        else:
-            rollDice(str)
-    except:
-        pass
-        
+        t[0] = variables[t[1]]
+    except LookupError:
+        print('Undefined name \'%s\'' % t[1])
+        t[0] = None
+
+def p_error(t):
+    print('Syntax error at \'%s\'' % t.value)
 
 def main():
-    try:
-        inputText = ""
-        while "quit" not in inputText and "exit" not in inputText:
-            if "clear" in inputText:
+    my_parser = argparse.ArgumentParser(description='Basic Calculator with DnD dice formula parsing')
+    args = my_parser.parse_args()
+
+    lexer = lex.lex(module=lextab)
+    parser = yacc.yacc()
+    while True:
+        expr = input('>> ')
+        if "clear" in expr:
                 os.system('cls')
-            if "*" in inputText or "/" in inputText:
-                print(eval(inputText))
-            print(">> ", end=" ")
-            inputText = input()
-            if "quit" not in inputText and "exit" not in inputText and len(inputText) > 0:
-                parseInput(inputText)
-    except KeyboardInterrupt:
-        print("Exiting Dice.py...")
-        
-        
-    
+        elif 'quit' in expr:
+            return
+        elif expr != '':
+            result = parser.parse(expr)
+
 if __name__ == "__main__":
     main()
