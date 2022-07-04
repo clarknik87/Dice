@@ -160,7 +160,15 @@ class DiceDistribution(object):
         
     def maximum(self):
         return self.pdf[1][-1]
-        
+    
+    def print_stats(self):
+        expected = self.expected_value()
+        stddev = self.standard_dev()
+        print("\tMinimum: {}".format(self.minimum()))
+        print("\tMaximum: {}".format(self.maximum()))
+        print("\tAverage: {:.2f}".format(expected))
+        print("\tStdDev:  {:.2f} 66%[{:.2f},{:.2f}]".format(stddev,expected-stddev,expected+stddev))
+    
     def generate_plot(self):
         plt.plot(self.pdf[1],self.pdf[0],'bp')
         plt.xticks(np.arange(self.pdf[1][0],self.pdf[1][-1]+1,step=math.ceil(len(self.pdf[1])/20.0)))
@@ -168,5 +176,5 @@ class DiceDistribution(object):
         plt.xlabel('roll outcome')
         plt.ylabel('probablity')
         plt.grid(visible=True, axis='both')
-        plt.show()
+        return plt
         

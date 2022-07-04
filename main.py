@@ -82,12 +82,7 @@ def p_expression_function(t):
     if t[1] == 'stats':
         if len(t[3]) == 1:
             if isinstance(t[3][0], dice.DiceDistribution):
-                expected = t[3][0].expected_value()
-                stddev = t[3][0].standard_dev()
-                print("\tMinimum: {}".format(t[3][0].minimum()))
-                print("\tMaximum: {}".format(t[3][0].maximum()))
-                print("\tAverage: {:.2f}".format(expected))
-                print("\tStdDev:  {:.2f} 66%[{:.2f},{:.2f}]".format(stddev,expected-stddev,expected+stddev))
+                t[3][0].print_stats()
                 t[0]=None
             else:
                 print('%s() function needs a dice formula' % t[1])
@@ -97,7 +92,8 @@ def p_expression_function(t):
     elif t[1] == 'plot':
         if len(t[3]) == 1:
             if isinstance(t[3][0], dice.DiceDistribution):
-                t[3][0].generate_plot()
+                t[3][0].print_stats()
+                t[3][0].generate_plot().show()
                 t[0]=None
             else:
                 print('%s() function needs a dice formula' % t[1])

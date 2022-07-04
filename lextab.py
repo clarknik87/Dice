@@ -35,7 +35,7 @@ t_EQUALS  = r'='
 
 # A regular expression rule with some action code
 def t_DICE(t):
-   r'\d+d\d+'
+   r'(\d+d\d+)|adv|dis|(max\(\d+d\d+\))|(min\(\d+d\d+\))'
    t.value = dice.DiceDistribution(t.value)
    return t
     
