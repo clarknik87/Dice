@@ -1,5 +1,6 @@
 import re
 import copy
+import math
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
@@ -102,8 +103,10 @@ class DiceDistribution(object):
             ret_dice.expr = self.expr + "+" + other.expr
             ret_dice.pdf = convolveDice(self.pdf,other.pdf)
         elif isinstance(other, int):
-            ret_dice.pdf[1] += 1
-            ret_dice.expr += "+1"
+            ret_dice.pdf[1] += other
+            ret_dice.expr += "+" + str(other)
+        elif isinstance(other, float):
+            return self + int(other)
         return ret_dice
 
     def __sub__(self,other):
@@ -114,8 +117,10 @@ class DiceDistribution(object):
             ret_dice.expr = self.expr + temp.expr
             ret_dice.pdf = convolveDice(self.pdf, temp.pdf)
         elif isinstance(other, int):
-            ret_dice.pdf[1] -= 1
-            ret_dice.expr += "-1"
+            ret_dice.pdf[1] -= other
+            ret_dice.expr += "-" + str(other)
+        elif isinstance(other, float):
+            return self - int(other)
         return ret_dice
     
     def __mul__(self,other):
@@ -129,6 +134,8 @@ class DiceDistribution(object):
                 probs[term*other] = self.pdf[0][term]
             ret_dice.pdf = np.vstack((probs,rolls))
             return ret_dice
+        elif isinstance(other, float):
+            return self*int(other)
         else:
             raise NotImplemented
 
@@ -156,7 +163,7 @@ class DiceDistribution(object):
         
     def generate_plot(self):
         plt.plot(self.pdf[1],self.pdf[0],'bp')
-        plt.xticks(np.arange(self.pdf[1][0],self.pdf[1][-1]+1,step=round(len(self.pdf[1])/20.0)))
+        plt.xticks(np.arange(self.pdf[1][0],self.pdf[1][-1]+1,step=math.ceil(len(self.pdf[1])/20.0)))
         plt.title(self.expr)
         plt.xlabel('roll outcome')
         plt.ylabel('probablity')

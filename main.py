@@ -4,6 +4,8 @@ import math
 import lextab
 import os
 
+import DiceDistribution as dice
+
 # Get the token map from the lexer.
 from lextab import tokens
 
@@ -30,7 +32,8 @@ def p_statement_expression(t):
     '''
     statement : expression
     '''
-    print(t[1])
+    if t[1] != None:
+        print(t[1])
 
 def p_expression_binop(t):
     '''
@@ -75,6 +78,33 @@ def p_expression_function(t):
     '''
     expression : NAME LPAREN expressions RPAREN
     '''
+
+    if t[1] == 'stats':
+        if len(t[3]) == 1:
+            if isinstance(t[3][0], dice.DiceDistribution):
+                expected = t[3][0].expected_value()
+                stddev = t[3][0].standard_dev()
+                print("\tMinimum: {}".format(t[3][0].minimum()))
+                print("\tMaximum: {}".format(t[3][0].maximum()))
+                print("\tAverage: {:.2f}".format(expected))
+                print("\tStdDev:  {:.2f} 66%[{:.2f},{:.2f}]".format(stddev,expected-stddev,expected+stddev))
+                t[0]=None
+            else:
+                print('%s() function needs a dice formula' % t[1])
+        else:
+           print('%s() function need one arguments' % t[1])
+        return
+    elif t[1] == 'plot':
+        if len(t[3]) == 1:
+            if isinstance(t[3][0], dice.DiceDistribution):
+                t[3][0].generate_plot()
+                t[0]=None
+            else:
+                print('%s() function needs a dice formula' % t[1])
+        else:
+           print('%s() function need one arguments' % t[1])
+        return
+
     if t[1] == 'sqrt':
         if len(t[3]) == 1:
             t[0]=math.sqrt(float(t[3][0]))
