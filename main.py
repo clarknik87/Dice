@@ -1,5 +1,7 @@
 import ply.lex as lex
 import ply.yacc as yacc
+import matplotlib.pyplot as plt
+import numpy as np
 import math
 import lextab
 import os
@@ -74,6 +76,32 @@ def p_expressions(t):
         return
     t[0] = [t[1]] if len(t) == 2 else t[1] + [t[3]]
 
+def plot_dice(t):
+    fig, ax = plt.subplots()
+    minimum = t[3][0].minimum()
+    maximum = t[3][0].maximum()
+    title = ''
+    colors = ['b','g','r','c','m','y']
+    idx = 0
+    for expr in t[3]:
+        if isinstance(expr, dice.DiceDistribution):
+            print(expr)
+            title += str(expr)+','
+            expr.print_stats()
+            expr.generate_plot(ax, colors[idx])
+            idx += 1
+            if expr.minimum() < minimum:
+                minimum = expr.minimum()
+            if expr.maximum() > maximum:
+                maximum = expr.maximum()
+        else:
+            print('%s() function needs a dice formula' % t[1])
+    plt.title(title)
+    plt.grid()
+    plt.xticks(np.arange(minimum,maximum+1,step=math.ceil((maximum-minimum)/20.0)))
+    plt.show()
+    t[0]=None
+
 def p_expression_function(t):
     '''
     expression : NAME LPAREN expressions RPAREN
@@ -90,15 +118,7 @@ def p_expression_function(t):
            print('%s() function need one arguments' % t[1])
         return
     elif t[1] == 'plot':
-        if len(t[3]) == 1:
-            if isinstance(t[3][0], dice.DiceDistribution):
-                t[3][0].print_stats()
-                t[3][0].generate_plot().show()
-                t[0]=None
-            else:
-                print('%s() function needs a dice formula' % t[1])
-        else:
-           print('%s() function need one arguments' % t[1])
+        plot_dice(t)
         return
 
     if t[1] == 'sqrt':

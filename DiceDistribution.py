@@ -2,8 +2,7 @@ import re
 import copy
 import math
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
+import matplotlib
 
 np.set_printoptions(precision=3)
 np.set_printoptions(suppress=True)
@@ -169,12 +168,9 @@ class DiceDistribution(object):
         print("\tAverage: {:.2f}".format(expected))
         print("\tStdDev:  {:.2f} 66%[{:.2f},{:.2f}]".format(stddev,expected-stddev,expected+stddev))
     
-    def generate_plot(self):
-        plt.plot(self.pdf[1],self.pdf[0],'bp')
-        plt.xticks(np.arange(self.pdf[1][0],self.pdf[1][-1]+1,step=math.ceil(len(self.pdf[1])/20.0)))
-        plt.title(self.expr)
-        plt.xlabel('roll outcome')
-        plt.ylabel('probablity')
-        plt.grid(visible=True, axis='both')
-        return plt
+    def generate_plot(self, ax, color='b'):
+        ax.plot(self.pdf[1],self.pdf[0], color+'p')
+        ax.set_xlabel('roll outcome')
+        ax.set_ylabel('probablity')
+        #ax.grid(visible=True, axis='both')
         
