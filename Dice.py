@@ -14,7 +14,7 @@ import DiceDistribution as dice
 from lextab import tokens
 
 precedence = (
-    ('left','GREATER_THAN','GREATER_EQUAL','LESS_THAN','LESS_EQUAL'),
+    ('left','EQUAL_TO','NOT_EQUAL_TO','GREATER_THAN','GREATER_EQUAL','LESS_THAN','LESS_EQUAL'),
     ('left','PLUS','MINUS'),
     ('left','TIMES','DIVIDE'),
     ('right','UMINUS')
@@ -111,7 +111,8 @@ def plot_dice(t):
     plt.grid()
     plt.xticks(np.arange(minimum,maximum+1,step=math.ceil((maximum-minimum)/20.0)))
     plt.legend()
-    plt.show()
+    #plt.show()
+    plt.savefig('dice_plot.png')
     t[0]=None
 
 def p_expression_function(t):
@@ -186,12 +187,18 @@ def p_expression_dice(t):
 
 def p_comparison_dice(t):
     '''
-    expression : expression GREATER_THAN expression
+    expression : expression EQUAL_TO expression
+               | expression NOT_EQUAL_TO expression
+               | expression GREATER_THAN expression
                | expression GREATER_EQUAL expression
                | expression LESS_THAN expression
                | expression LESS_EQUAL expression
     '''
-    if t[2] == '>':
+    if t[2] == '==':
+        t[0] = t[1] == t[3]
+    elif t[2] == '!=':
+        t[0] = t[1] != t[3]
+    elif t[2] == '>':
         t[0] = t[1] > t[3]
     elif t[2] == '>=':
         t[0] = t[1] >= t[3]

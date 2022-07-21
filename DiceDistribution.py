@@ -90,22 +90,48 @@ class DiceDistribution(object):
         result = int(random.choices(self.pdf[1],self.pdf[0], k=1)[0])
         return "{} [{:.2f}%]".format(result,(self<result)*100)
 
+    def __eq__(self,other):
+        score = 0.0
+        if isinstance(other, int):
+            for roll in range(len(self.pdf[1])):
+                if self.pdf[1][roll] == other:
+                    score = self.pdf[0][roll]
+                    return score;
+        elif isinstance(other, float):
+            return self == int(other)
+        elif isinstance(other, DiceDistribution):
+            return self-other == 0;
+        return score
+
+    def __ne__(self,other):
+        return 1-(self == other)
+
     def __le__(self,other):
         score = 0.0
-        for roll in range(len(self.pdf[1])):
-            if self.pdf[1][roll] >= other:
-                break
-            else:
-                score += self.pdf[0][roll]
+        if isinstance(other, int):
+            for roll in range(len(self.pdf[1])):
+                if self.pdf[1][roll] >= other:
+                    break
+                else:
+                    score += self.pdf[0][roll]
+        elif isinstance(other, float):
+            return self <= int(other)
+        elif isinstance(other, DiceDistribution):
+            return self-other<=0;
         return score
 
     def __lt__(self,other):
         score = 0.0
-        for roll in range(len(self.pdf[1])):
-            if self.pdf[1][roll] > other:
-                break
-            else:
-                score += self.pdf[0][roll]
+        if isinstance(other, int):
+            for roll in range(len(self.pdf[1])):
+                if self.pdf[1][roll] > other:
+                    break
+                else:
+                    score += self.pdf[0][roll]
+        elif isinstance(other, float):
+            return self <= int(other)
+        elif isinstance(other, DiceDistribution):
+            return self-other<0;
         return score
 
     def __ge__(self,other):
