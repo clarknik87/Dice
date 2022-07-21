@@ -9,6 +9,7 @@ import sys
 import argparse
 
 import DiceDistribution as dice
+import config
 
 # Get the token map from the lexer.
 from lextab import tokens
@@ -111,7 +112,10 @@ def plot_dice(t):
     plt.grid()
     plt.xticks(np.arange(minimum,maximum+1,step=math.ceil((maximum-minimum)/20.0)))
     plt.legend()
-    plt.show()
+    if config.__NO_PLOT_SHOW__:
+        plt.savefig('dice_plot.png')    
+    else:
+        plt.show()
     t[0]=None
 
 def p_expression_function(t):
