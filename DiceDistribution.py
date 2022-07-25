@@ -162,6 +162,9 @@ class DiceDistribution(object):
             return self + int(other)
         return ret_dice
 
+    def __radd__(self,other):
+        return self + other
+
     def __sub__(self,other):
         ret_dice = copy.deepcopy(self)
         if isinstance(other, DiceDistribution):
@@ -175,7 +178,10 @@ class DiceDistribution(object):
         elif isinstance(other, float):
             return self - int(other)
         return ret_dice
-    
+
+    def __rsub__(self,other):
+        return -self + other
+
     def __mul__(self,other):
         if isinstance(other, int):
             ret_dice = copy.deepcopy(self)
@@ -191,6 +197,9 @@ class DiceDistribution(object):
             return self*int(other)
         else:
             raise NotImplemented
+
+    def __rmul__(self,other):
+        return self * other
 
     def expected_value(self):
         ex = 0.0
