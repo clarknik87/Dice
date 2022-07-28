@@ -110,7 +110,7 @@ class DiceDistribution(object):
         score = 0.0
         if isinstance(other, int):
             for roll in range(len(self.pdf[1])):
-                if self.pdf[1][roll] >= other:
+                if self.pdf[1][roll] > other:
                     break
                 else:
                     score += self.pdf[0][roll]
@@ -124,21 +124,21 @@ class DiceDistribution(object):
         score = 0.0
         if isinstance(other, int):
             for roll in range(len(self.pdf[1])):
-                if self.pdf[1][roll] > other:
+                if self.pdf[1][roll] >= other:
                     break
                 else:
                     score += self.pdf[0][roll]
         elif isinstance(other, float):
-            return self <= int(other)
+            return self < int(other)
         elif isinstance(other, DiceDistribution):
             return self-other<0;
         return score
 
     def __ge__(self,other):
-        return 1-(self <= other)
+        return 1-(self < other)
 
     def __gt__(self,other):
-        return 1-(self < other)
+        return 1-(self <= other)
 
     def __repr__(self):
         return self.expr
