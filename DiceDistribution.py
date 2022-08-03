@@ -59,6 +59,84 @@ def getMinDistribution(numdice, numsides):
     die = np.vstack((probs,rolls))
     return die
 
+def accel_asc(n):
+    a = [0 for i in range(n + 1)]
+    k = 1
+    y = n - 1
+    while k != 0:
+        x = a[k - 1] + 1
+        k -= 1
+        while 2 * x <= y:
+            a[k] = x
+            y -= x
+            k += 1
+        l = k + 1
+        while x <= y:
+            a[k] = x
+            a[l] = y
+            yield a[:k + 2]
+            x += 1
+            y -= 1
+        a[k] = x + y
+        y = x + y - 1
+        yield a[:k + 1]
+
+def get_valid_integer_partitions(n, part_len, max_val, min_val):
+    part_list = []
+    for p in accel_asc(n):
+        if len(p) == part_len and max(p)<=max_val and min(p)>=min_val:
+            part_list.append(p)
+    return part_list
+
+def extend_partition_max(partition, roll_list, numdice):
+    if len(partition) == numdice:
+        roll_list.append(partition)
+    else:
+        for s in range(1,min(partition)+1):
+            extend_partition_max(partition+[s],roll_list,numdice)
+    
+def extend_partition_min(partition, roll_list, numdice, numsides):
+    if len(partition) == numdice:
+        roll_list.append(partition)
+    else:
+        for s in range(max(partition), numsides+1):
+            extend_partition_min(partition+[s],roll_list,numdice, numsides)
+
+def getComplexMaxDistribution(numdice, totaldice, numsides):
+    pdf = getDiceDistribution(numdice, numsides)
+    for idx,roll_result in enumerate(pdf[1]):
+        total_permutations = 0
+        roll_list = []
+        int_partitions = get_valid_integer_partitions(int(roll_result), numdice, numsides, 1)
+        for part in int_partitions:
+            temp_roll_list = []
+            extend_partition_max(part, temp_roll_list, totaldice)
+            roll_list += temp_roll_list
+        for roll in roll_list:
+            temp_product = 1
+            for d in range(1,numsides+1):
+                temp_product *= math.factorial(roll.count(d))
+            total_permutations += math.factorial(totaldice)/temp_product 
+        pdf[0][idx] = total_permutations/(numsides**totaldice)
+    return pdf
+
+def getComplexMinDistribution(numdice, totaldice, numsides):
+    pdf = getDiceDistribution(numdice, numsides)
+    for idx,roll_result in enumerate(pdf[1]):
+        total_permutations = 0
+        roll_list = []
+        int_partitions = get_valid_integer_partitions(int(roll_result), numdice, numsides, 1)
+        for part in int_partitions:
+            temp_roll_list = []
+            extend_partition_min(part, temp_roll_list, totaldice, numsides)
+            roll_list += temp_roll_list
+        for roll in roll_list:
+            temp_product = 1
+            for d in range(1,numsides+1):
+                temp_product *= math.factorial(roll.count(d))
+            total_permutations += math.factorial(totaldice)/temp_product
+        pdf[0][idx] = total_permutations/(numsides**totaldice)
+    return pdf
 
 class DiceDistribution(object):  
     def __init__(self,expr: str = 'unknown',pdf = np.array([])) -> None:
@@ -69,7 +147,7 @@ class DiceDistribution(object):
             self.pdf = getDiceDistribution(numdice, numsides)
         elif re.match('adv', expr):
             self.pdf = getMaxDistribution(2,20)        
-        elif re.match('max\(.+\)', expr):
+        elif re.match('max\(\d+d\d+\)', expr):
             expr = expr.replace('max(','')
             expr = expr.replace(')','')
             numdice  = int(expr.split("d")[0])
@@ -77,12 +155,26 @@ class DiceDistribution(object):
             self.pdf = getMaxDistribution(numdice, numsides)
         elif re.match('dis', expr):
             self.pdf = getMinDistribution(2,20)
-        elif re.match('min\(.+\)', expr):
+        elif re.match('max\(\d+d\d+\)', expr):
             expr = expr.replace('min(','')
             expr = expr.replace(')','')
             numdice  = int(expr.split("d")[0])
             numsides = int(expr.split("d")[1])
             self.pdf = getMinDistribution(numdice, numsides)
+        elif re.match('max\(\d+,\d+d\d+\)', expr):
+            expr = expr.replace('max(','')
+            expr = expr.replace(')','')
+            numdice = int(expr.split(",")[0])
+            totaldice  = int(expr.split("d")[0].split(",")[1])
+            numsides = int(expr.split("d")[1])
+            self.pdf = getComplexMaxDistribution(numdice, totaldice, numsides)
+        elif re.match('min\(\d+,\d+d\d+\)', expr):
+            expr = expr.replace('min(','')
+            expr = expr.replace(')','')
+            numdice = int(expr.split(",")[0])
+            totaldice  = int(expr.split("d")[0].split(",")[1])
+            numsides = int(expr.split("d")[1])
+            self.pdf = getComplexMinDistribution(numdice, totaldice, numsides)
         else:
             self.pdf = pdf
     
