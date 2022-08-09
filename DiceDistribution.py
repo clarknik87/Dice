@@ -180,7 +180,7 @@ class DiceDistribution(object):
     
     def roll(self):
         result = int(random.choices(self.pdf[1],self.pdf[0], k=1)[0])
-        return "{} [{:.2f}%]".format(result,(self<result)*100)
+        return "{} [{:.2f}%]".format(result,(self<=result)*100)
 
     def __eq__(self,other):
         score = 0.0
