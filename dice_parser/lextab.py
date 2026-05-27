@@ -3,7 +3,7 @@
 # ------------------------------------------------------------
 import ply.lex as lex
 import math
-import DiceDistribution as dice
+import dice_parser.dice_distr as dice
 
 # List of token names.   This is always required
 
