@@ -36,6 +36,9 @@ Enclosing a dice expression in `stats(<expr>)` will return the minimum roll, max
 
 Enclosing a dice expression in `plot(<expr>)` causes the parser to return a matplotlib tuple containing a figure and axes that can be displayed with the `plt.show()` command if desired. You can also plot a list of expressions and have them shown on a single plot. This is very useful for visually comparing distributions. For example `plot(1d20, adv, dis)` will return a figure,axes tuple ready to display all three distributions.
 
+## Constants and Variables
+The parser stores two internal dictionaries for constants and variables. This allows a user to alias larger dice formulas to conventient names. Both constants and variables are read the same, but only variables can have their alias changed at runtime. Contants must be supplied to the parser when the parser class is constructed. To assign a variable use the following syntax: `fireball = 6d8`. The parser will return `None` if successful. Later the user can simply type `roll(fireball)` instead of `roll(6d8)`. You can assign more complicated formulas: `perception = adv+6+1d4+1d6`. You can even nest aliases. `dex = 5` followed by `acrobatics = 1d20+dex` is valid. 
+
 ## Error Codes
 Invalid parser input should return an error code of type `ParseError` found in parser.py. These are specific, though minimally descriptive of the various parsing errors that may occur.
 
