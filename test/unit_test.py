@@ -8,6 +8,7 @@ import unittest
 from dice_distr_test import TestDiceDisribution
 from interpolate_test import TestStringInterpolation
 from parser_test import TestParser
+from var_graph_test import TestGraph
 
 if __name__ == '__main__':
     unittest.main()

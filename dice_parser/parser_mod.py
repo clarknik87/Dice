@@ -5,6 +5,7 @@ import math
 import dice_parser.dice_distr as dice
 from dice_parser.err_codes import *
 from dice_parser.lextab import tokens
+from dice_parser.var_graph import var_graph, user_var
 
 precedence = (
     ('left','EQUAL_TO','NOT_EQUAL_TO','GREATER_THAN','GREATER_EQUAL','LESS_THAN','LESS_EQUAL'),
@@ -13,21 +14,14 @@ precedence = (
     ('right','UMINUS')
 )
 
-constants: dict[str,float] = {
-}
-
-variables: dict[str,float] = {
-}
-
 start='statement'
 
 def p_statement_assign(t):
     '''
     statement : NAME EQUALS expression
     '''
-    if t[1] in constants:
-        raise ConstAssignmentError()
-    variables[t[1]] = t[3]
+    if t.parser.variables is not None:
+        t.parser.variables.add_var(t[1], t.lexer.lexdata.split(t[2])[-1])
     t[0] = None
 
 def p_statement_expression(t):
@@ -223,12 +217,8 @@ def p_expression_name(t):
     '''
     expression : NAME
     '''
-    if t[1] in constants:
-        t[0] = constants[t[1]]
-    elif t[1] in variables:
-        t[0] = variables[t[1]]
-    else:
-        raise VariableKeyError
+    if t.parser.variables is not None:
+        t[0] = t.parser.variables[t[1]].value
 
 def p_error(t):
     raise SyntaxError(f'syntax error: {t}') 

@@ -1,9 +1,3 @@
-class ConstAssignmentError(Exception):
-    pass
-
-class VariableKeyError(Exception):
-    pass
-
 class UndefinedFunctionError(Exception):
     def __init(self, err:str = ''):
         self.err = err

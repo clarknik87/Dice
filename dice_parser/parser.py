@@ -3,6 +3,7 @@ import ply.yacc as yacc
 from dice_parser import lextab, parser_mod
 from dice_parser.dice_distr import DiceDistribution, DiceStats
 from dice_parser.err_codes import *
+from dice_parser.var_graph import var_graph, KeyRedefinitionError, VariableKeyError
 from enum import Enum, auto
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
@@ -18,11 +19,11 @@ class ParseError(Enum):
     ERR_UNKNOWN_OUTPUT = auto()
 
 class DiceParser:
-    def __init__(self, constants:dict[str,float] = {}, variables:dict[str,float] = {}) -> None:
-        parser_mod.constants = constants
-        parser_mod.variables = variables
+    def __init__(self, constants:dict[str,str] = {}, variables:dict[str,str] = {}) -> None:
         self.lexer = lex.lex(module=lextab)
         self.parser = yacc.yacc(module=parser_mod)
+        self.parser.variables = var_graph(self.lexer, self.parser)
+        self.parser.variables.init_variables(variables, constants)
 
     def parse(self, expr:str) -> int|float|DiceDistribution|DiceStats|tuple[Figure,Axes]|ParseError|None:
         if expr.strip() == '':
@@ -37,7 +38,7 @@ class DiceParser:
                 return None
             else:
                 return ParseError.ERR_UNKNOWN_OUTPUT
-        except ConstAssignmentError:
+        except KeyRedefinitionError:
             return ParseError.ERR_CONST_ASSIGNMENT
         except ZeroDivisionError:
             return ParseError.ERR_ZERO_DIVISION
@@ -61,8 +62,8 @@ class DiceParser:
             expr = expr[:sidx] + parse_str + expr[eidx+1:]
         return expr
     
-    def get_variables_dict(self) -> dict[str,float]:
-        return parser_mod.variables
+    def get_variables_dict(self) -> dict[str,str]:
+        return self.parser.variables.get_variables()
 
-    def get_constants_dict(self) -> dict[str,float]:
-        return parser_mod.constants
+    def get_constants_dict(self) -> dict[str,str]:
+        return self.parser.variables.get_constants()
